@@ -59,10 +59,10 @@ const validate = (schema) => {
       next();
     } catch (error) {
       if (error instanceof z.ZodError) {
-        const errors = error.errors.map((err) => ({
+        const errors = error.issues ? error.issues.map((err) => ({
           field: err.path.join("."),
           message: err.message,
-        }));
+        })) : [];
 
         return res.status(400).json({
           success: false,
@@ -74,6 +74,7 @@ const validate = (schema) => {
       res.status(500).json({
         success: false,
         error: "Validation error",
+        message: error.message,
       });
     }
   };
@@ -88,10 +89,10 @@ const validateQuery = (schema) => {
       next();
     } catch (error) {
       if (error instanceof z.ZodError) {
-        const errors = error.errors.map((err) => ({
+        const errors = error.issues ? error.issues.map((err) => ({
           field: err.path.join("."),
           message: err.message,
-        }));
+        })) : [];
 
         return res.status(400).json({
           success: false,
@@ -103,6 +104,7 @@ const validateQuery = (schema) => {
       res.status(500).json({
         success: false,
         error: "Query validation error",
+        message: error.message,
       });
     }
   };
@@ -134,6 +136,29 @@ const transactionQuerySchema = z.object({
     .enum(["pending", "completed", "failed", "cancelled", "all"])
     .optional(),
   limit: z.string().regex(/^\d+$/).transform(Number).optional(),
+});
+
+// Property validation schemas
+const propertySchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  description: z.string().min(1, "Description is required"),
+  address: z.string().min(1, "Address is required"),
+  price: z.number().positive("Price must be a positive number"),
+  status: z.enum(["available", "sold", "pending"]).optional(),
+});
+
+const propertyUpdateSchema = z.object({
+  title: z.string().min(1, "Title is required").optional(),
+  description: z.string().min(1, "Description is required").optional(),
+  address: z.string().min(1, "Address is required").optional(),
+  price: z.number().positive("Price must be a positive number").optional(),
+  status: z.enum(["available", "sold", "pending"]).optional(),
+});
+
+const propertyQuerySchema = z.object({
+  status: z.enum(["available", "sold", "pending"]).optional(),
+  limit: z.string().regex(/^\d+$/).transform(Number).optional(),
+  offset: z.string().regex(/^\d+$/).transform(Number).optional(),
 });
 
 // Sanitization middleware
@@ -224,6 +249,9 @@ module.exports = {
   withdrawalSchema,
   updateProfileSchema,
   changePasswordSchema,
+  propertySchema,
+  propertyUpdateSchema,
+  propertyQuerySchema,
   validate,
   validateQuery,
   paginationSchema,
