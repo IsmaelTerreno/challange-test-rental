@@ -1,0 +1,717 @@
+{
+	"info": {
+		"_postman_id": "property-api-tests",
+		"name": "Property Management API Tests",
+		"description": "Complete test collection for Property Management API endpoints including CRUD operations, validation, and bonus features",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Core CRUD Operations",
+			"item": [
+				{
+					"name": "1. Create Property",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Response has success true\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.eql(true);",
+									"});",
+									"",
+									"pm.test(\"Response contains property data\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.have.property('id');",
+									"    pm.expect(jsonData.data).to.have.property('title');",
+									"    pm.expect(jsonData.data).to.have.property('createdAt');",
+									"    pm.expect(jsonData.data).to.have.property('updatedAt');",
+									"});",
+									"",
+									"// Save property ID for later tests",
+									"var jsonData = pm.response.json();",
+									"pm.environment.set(\"property_id\", jsonData.data.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Luxury Apartment\",\n  \"description\": \"A beautiful apartment in downtown.\",\n  \"address\": \"123 Main St\",\n  \"price\": 250000\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/properties",
+							"host": ["{{base_url}}"],
+							"path": ["api", "properties"]
+						},
+						"description": "Create a new property with all required fields"
+					},
+					"response": []
+				},
+				{
+					"name": "2. Get All Properties",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has success true\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.eql(true);",
+									"});",
+									"",
+									"pm.test(\"Response contains properties array\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.be.an('array');",
+									"});",
+									"",
+									"pm.test(\"Response contains pagination info\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.pagination).to.have.property('total');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/properties",
+							"host": ["{{base_url}}"],
+							"path": ["api", "properties"]
+						},
+						"description": "Fetch all properties"
+					},
+					"response": []
+				},
+				{
+					"name": "3. Get Property by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has success true\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.eql(true);",
+									"});",
+									"",
+									"pm.test(\"Response contains property data\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.be.an('object');",
+									"    pm.expect(jsonData.data).to.have.property('id');",
+									"    pm.expect(jsonData.data).to.have.property('title');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/properties/{{property_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "properties", "{{property_id}}"]
+						},
+						"description": "Fetch a single property by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "4. Update Property",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has success true\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.eql(true);",
+									"});",
+									"",
+									"pm.test(\"Property title was updated\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.title).to.eql('Updated Luxury Apartment');",
+									"});",
+									"",
+									"pm.test(\"UpdatedAt timestamp changed\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.updatedAt).to.not.eql(jsonData.data.createdAt);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Updated Luxury Apartment\",\n  \"price\": 275000,\n  \"status\": \"pending\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/properties/{{property_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "properties", "{{property_id}}"]
+						},
+						"description": "Update a property's details"
+					},
+					"response": []
+				},
+				{
+					"name": "5. Delete Property",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has success true\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.eql(true);",
+									"});",
+									"",
+									"pm.test(\"Response contains deleted property ID\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.have.property('id');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/properties/{{property_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "properties", "{{property_id}}"]
+						},
+						"description": "Delete a property by ID"
+					},
+					"response": []
+				}
+			],
+			"description": "Test all 5 core CRUD operations"
+		},
+		{
+			"name": "Validation & Error Handling",
+			"item": [
+				{
+					"name": "Missing Required Fields",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test(\"Response has success false\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.eql(false);",
+									"});",
+									"",
+									"pm.test(\"Response contains validation errors\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.error).to.eql('Validation failed');",
+									"    pm.expect(jsonData.details).to.be.an('array');",
+									"    pm.expect(jsonData.details.length).to.be.greaterThan(0);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Test Property\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/properties",
+							"host": ["{{base_url}}"],
+							"path": ["api", "properties"]
+						},
+						"description": "Test validation when required fields are missing"
+					},
+					"response": []
+				},
+				{
+					"name": "Negative Price Validation",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test(\"Response has validation error for price\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.eql(false);",
+									"    pm.expect(jsonData.error).to.eql('Validation failed');",
+									"    ",
+									"    var priceError = jsonData.details.find(e => e.field === 'price');",
+									"    pm.expect(priceError).to.exist;",
+									"    pm.expect(priceError.message).to.include('positive');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Test Property\",\n  \"description\": \"Test description\",\n  \"address\": \"Test address\",\n  \"price\": -100\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/properties",
+							"host": ["{{base_url}}"],
+							"path": ["api", "properties"]
+						},
+						"description": "Test that price must be a positive number"
+					},
+					"response": []
+				},
+				{
+					"name": "Property Not Found (404)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 404\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"pm.test(\"Response has success false\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.eql(false);",
+									"});",
+									"",
+									"pm.test(\"Response contains not found error\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.error).to.eql('Property not found');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/properties/999999",
+							"host": ["{{base_url}}"],
+							"path": ["api", "properties", "999999"]
+						},
+						"description": "Test 404 error when property doesn't exist"
+					},
+					"response": []
+				}
+			],
+			"description": "Test validation rules and error handling"
+		},
+		{
+			"name": "Bonus Features",
+			"item": [
+				{
+					"name": "Setup - Create Sample Properties",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Properties created successfully\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Beach House\",\n  \"description\": \"Beautiful beach house with ocean view.\",\n  \"address\": \"456 Ocean Dr\",\n  \"price\": 500000,\n  \"status\": \"available\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/properties",
+							"host": ["{{base_url}}"],
+							"path": ["api", "properties"]
+						},
+						"description": "Create sample properties for filtering tests"
+					},
+					"response": []
+				},
+				{
+					"name": "Setup - Create Sold Property",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Property created successfully\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Mountain Cabin\",\n  \"description\": \"Cozy cabin in the mountains.\",\n  \"address\": \"789 Pine Rd\",\n  \"price\": 300000,\n  \"status\": \"sold\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/properties",
+							"host": ["{{base_url}}"],
+							"path": ["api", "properties"]
+						},
+						"description": "Create a sold property for filtering"
+					},
+					"response": []
+				},
+				{
+					"name": "Filter by Status - Available",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"All returned properties have 'available' status\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.be.an('array');",
+									"    ",
+									"    jsonData.data.forEach(function(property) {",
+									"        pm.expect(property.status).to.eql('available');",
+									"    });",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/properties?status=available",
+							"host": ["{{base_url}}"],
+							"path": ["api", "properties"],
+							"query": [
+								{
+									"key": "status",
+									"value": "available"
+								}
+							]
+						},
+						"description": "Filter properties by 'available' status"
+					},
+					"response": []
+				},
+				{
+					"name": "Filter by Status - Sold",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"All returned properties have 'sold' status\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.be.an('array');",
+									"    ",
+									"    jsonData.data.forEach(function(property) {",
+									"        pm.expect(property.status).to.eql('sold');",
+									"    });",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/properties?status=sold",
+							"host": ["{{base_url}}"],
+							"path": ["api", "properties"],
+							"query": [
+								{
+									"key": "status",
+									"value": "sold"
+								}
+							]
+						},
+						"description": "Filter properties by 'sold' status"
+					},
+					"response": []
+				},
+				{
+					"name": "Pagination - Page 1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Returns correct number of properties\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.be.an('array');",
+									"    pm.expect(jsonData.data.length).to.be.at.most(2);",
+									"});",
+									"",
+									"pm.test(\"Pagination metadata is correct\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.pagination.limit).to.eql(2);",
+									"    pm.expect(jsonData.pagination.offset).to.eql(0);",
+									"    pm.expect(jsonData.pagination).to.have.property('total');",
+									"    pm.expect(jsonData.pagination).to.have.property('hasMore');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/properties?limit=2&offset=0",
+							"host": ["{{base_url}}"],
+							"path": ["api", "properties"],
+							"query": [
+								{
+									"key": "limit",
+									"value": "2"
+								},
+								{
+									"key": "offset",
+									"value": "0"
+								}
+							]
+						},
+						"description": "Get first page with 2 items"
+					},
+					"response": []
+				},
+				{
+					"name": "Pagination - Page 2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Pagination metadata is correct\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.pagination.limit).to.eql(2);",
+									"    pm.expect(jsonData.pagination.offset).to.eql(2);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/properties?limit=2&offset=2",
+							"host": ["{{base_url}}"],
+							"path": ["api", "properties"],
+							"query": [
+								{
+									"key": "limit",
+									"value": "2"
+								},
+								{
+									"key": "offset",
+									"value": "2"
+								}
+							]
+						},
+						"description": "Get second page with 2 items"
+					},
+					"response": []
+				},
+				{
+					"name": "Combined Filter + Pagination",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Filters and paginated correctly\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.be.an('array');",
+									"    pm.expect(jsonData.data.length).to.be.at.most(1);",
+									"    ",
+									"    if (jsonData.data.length > 0) {",
+									"        pm.expect(jsonData.data[0].status).to.eql('available');",
+									"    }",
+									"    ",
+									"    pm.expect(jsonData.pagination.limit).to.eql(1);",
+									"    pm.expect(jsonData.pagination.offset).to.eql(0);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/properties?status=available&limit=1&offset=0",
+							"host": ["{{base_url}}"],
+							"path": ["api", "properties"],
+							"query": [
+								{
+									"key": "status",
+									"value": "available"
+								},
+								{
+									"key": "limit",
+									"value": "1"
+								},
+								{
+									"key": "offset",
+									"value": "0"
+								}
+							]
+						},
+						"description": "Test combining status filter with pagination"
+					},
+					"response": []
+				}
+			],
+			"description": "Test bonus features: filtering and pagination"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:5001",
+			"type": "string"
+		},
+		{
+			"key": "property_id",
+			"value": "1",
+			"type": "string"
+		}
+	]
+}
